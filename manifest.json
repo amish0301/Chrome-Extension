@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "version": "1.0.0",
+    "name": "Your Reminder",
+    "description": "Customized Reminders for your Health",
+    "icons": {},
+    "action": {
+        "default_title": "Your Reminder",
+        "default_popup": "popup.html",
+        "default_icon": "icon.png"
+    },
+
+    "background": {
+        "service_worker": "background.js"
+    },
+
+    "default_icon": {
+        "16": "icon.png",
+        "32": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+    },
+
+    "permissions": [
+        "storage","activeTab","scripting","contextMenus"
+    ]
+
+}
