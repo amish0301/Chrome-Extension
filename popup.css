@@ -92,12 +92,14 @@
   left: 24px;
 }
 
-.expand_water, .expand_nap {
-    display: none;
-    position: relative;
+.expand_water,
+.expand_nap {
+  display: none;
+  position: relative;
 }
 
-.collapsible, .collapsible2 {
+.collapsible,
+.collapsible2 {
   background-color: #d77676;
   color: white;
   cursor: pointer;
@@ -110,17 +112,20 @@
 }
 
 .active,
-.collapsible:hover, .collapsible2:hover {
+.collapsible:hover,
+.collapsible2:hover {
   background-color: #555;
 }
 
-.water_content, .nap_content {
+.water_content,
+.nap_content {
   display: none;
   overflow: hidden;
   background-color: #f1f1f1;
 }
 
-.water_content input, .nap_content input {
+.water_content input,
+.nap_content input {
   width: 100%;
   border-radius: 5px;
   border: 2px solid rgb(213, 213, 215);
@@ -130,27 +135,28 @@
   font-size: medium;
 }
 
-.water_content input:focus, .nap_content input:focus {
-    outline-width: 4px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    outline-color: blueviolet;
+.water_content input:focus,
+.nap_content input:focus {
+  outline-width: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  outline-color: blueviolet;
 }
 
-.submit_btn {
-    padding: 10px;
-    border-radius: 5px;
-    border: 2px solid rgb(213, 213, 215);
-    background-color: rgb(50, 106, 236);
-    color: white;
-    margin-top: 1.2rem;
-    font-size: medium;
-    cursor: pointer;
-    font-weight: 600;
-    width: 100%;
-    transition: cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s;
+#submit_btn {
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid rgb(213, 213, 215);
+  background-color: rgb(50, 106, 236);
+  color: white;
+  margin-top: 1.2rem;
+  font-size: medium;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s;
 }
 
-.submit_btn:hover {
-    background-color: transparent;
-    color: black;
+#submit_btn:hover {
+  background-color: transparent;
+  color: black;
 }

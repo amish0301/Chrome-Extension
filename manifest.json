@@ -13,7 +13,7 @@
     },
 
     "permissions": [
-        "storage","tabs","contextMenus"
+        "contextMenus", "notifications", "alarms", "activeTab", "scripting", "storage"
     ]
 
 }
