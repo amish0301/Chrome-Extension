@@ -43,7 +43,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "water") {
     chrome.notifications.create({
       type: "basic",
-      iconUrl: "icon.png",
+      iconUrl:
+        "https://upload.wikimedia.org/wikipedia/commons/f/f1/Draw_alarm-clock.png",
       title: "Water Reminder",
       message: "Time to drink water!",
     });
@@ -60,48 +61,57 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 async function createAlarms({ time, type }) {
-  if (type === "water") {
-    if (prevTimeOfWater === time) {
-      return;
-      // i can send message to the client
-    }
-
-    chrome.alarms.clear("water");
-    // make new alarm
-    await chrome.alarms.create(
-      type,
-      {
-        delayInMinutes: time,
-        periodInMinutes: time,
-      },
-      () => {
-        if (chrome.runtime.lastError)
-          console.log("Error in creating alarm", chrome.runtime.lastError);
-        else prevTimeOfWater = time;
+  return new Promise((resolve, reject) => {
+    if (time === prevTimeOfWater)
+      return reject(`Already created alarm for ${type}`);
+    chrome.alarms.create(type, { periodInMinutes: time }, () => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        prevTimeOfWater = time;
+        console.log(`previous time of ${type} : ${prevTimeOfWater}`);
+        resolve(`alarm created for ${type}`);
       }
-    );
-  }
-
-  if (type === "nap") {
-  }
+    });
+  });
 }
 
 function stopAlarm(type) {
   chrome.alarms.clear(type);
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.time) {
-    chrome.notifications.create({
-      type: "basic",
-      iconUrl: "https://cdn-icons-png.flaticon.com/512/1792/1792931.png",
-      title: "Test",
-      message: "Hey there!!",
-    })
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.type === "water" && request.time) {
+    try {
+      await createAlarms({ time: request.time, type: "water" });
+      sendResponse({
+        success: true,
+        message: `Alarm for ${request.type} created`,
+      });
+    } catch (error) {
+      sendResponse({
+        success: false,
+        message: "Error creating alarm: " + error.message,
+      });
+    }
+  }
+
+  if (request.type === "remove alarm for water") {
+    stopAlarm("water");
+    sendResponse({ message: "Removed alarm for Water" });
   }
 });
 
 // create context menu
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(({ reason }) => {
   createContextMenu();
+  if (reason === "install") {
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl:
+        "https://cdn0.iconfinder.com/data/icons/apple-apps/100/Apple_Messages-512.png",
+      title: "Your Reminder",
+      message: "Thanks for installing this extension!🥰",
+    });
+  }
 });

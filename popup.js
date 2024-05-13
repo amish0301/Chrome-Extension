@@ -1,11 +1,14 @@
 const nap_break_input = document.getElementById("nap_break");
 const water_break_input = document.getElementById("water_break");
+let isWaterChecked = false;
 
 water_break_input.addEventListener("change", function () {
-  if (water_break_input.checked) {
+  if (water_break_input.checked && !isWaterChecked) {
     document.getElementsByClassName("expand_water")[0].style.display = "block";
+    isWaterChecked = true;
   } else {
     document.getElementsByClassName("expand_water")[0].style.display = "none";
+    isWaterChecked = false;
   }
 });
 
@@ -54,14 +57,39 @@ function submit() {
         type,
       });
     } catch (error) {
-      throw new Error(error);
+      console.log(error);
     }
   }
-  if (time_water) sendMessage({ type: "water", time: parseInt(time_water) });
+  if (time_water) {
+    sendMessage({ type: "water", time: parseInt(time_water) });
+    isWaterChecked = true;
+  }
 
   // Clearing inputs
   document.getElementsByName("water_break_input")[0].value = "";
   document.getElementsByName("nap_break_input")[0].value = "";
+  window.close();
 }
 
 document.getElementById("submit_btn").addEventListener("click", submit);
+
+// if(!water_break_input.checked) {
+//   // clear alarm
+//   chrome.runtime.sendMessage({
+//     type: "remove alarm for water"
+//   });
+// }
+
+// ALL Message Listening - In Testing Mode
+
+// chrome.runtime.onMessage.addListener((response, sender, sendResponse) => {
+//     if(response.message === "Removed alarm for Water") {
+//       chrome.notifications.create({
+//         type: "basic",
+//         iconUrl: "https://www.freeiconspng.com/thumbs/alert-icon/alert-icon-alert-icon-12.jpg",
+//         title: "Your Reminder",
+//         message: "Removed alarm for Water",
+//         priority: 1
+//       });
+//     }
+// })
