@@ -1,15 +1,20 @@
 const nap_break_input = document.getElementById("nap_break");
 const water_break_input = document.getElementById("water_break");
-let isWaterChecked = false;
 
-water_break_input.addEventListener("change", function () {
-  if (water_break_input.checked && !isWaterChecked) {
-    document.getElementsByClassName("expand_water")[0].style.display = "block";
-    isWaterChecked = true;
-  } else {
-    document.getElementsByClassName("expand_water")[0].style.display = "none";
-    isWaterChecked = false;
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  chrome.storage.sync.get(["isWaterChecked"], (res) => {
+    water_break_input.checked = res.isWaterChecked || false;
+  });
+
+  water_break_input.addEventListener("change", function () {
+    if (water_break_input.checked) {
+      document.getElementsByClassName("expand_water")[0].style.display = "block";
+    } else {
+      document.getElementsByClassName("expand_water")[0].style.display = "none"; 
+    }
+  
+    chrome.storage.sync.set({ isWaterChecked: water_break_input.checked });
+  });
 });
 
 nap_break_input.addEventListener("change", function () {
@@ -62,7 +67,12 @@ function submit() {
   }
   if (time_water) {
     sendMessage({ type: "water", time: parseInt(time_water) });
-    isWaterChecked = true;
+  }
+
+  // set state if changed
+  if(!water_break_input.checked) {
+    chrome.storage.sync.set({ isWaterChecked: false });
+    // stop alarm
   }
 
   // Clearing inputs
@@ -93,3 +103,12 @@ document.getElementById("submit_btn").addEventListener("click", submit);
 //       });
 //     }
 // })
+
+/*
+Tasks:
+1. Implement a dynamic checkbox behaviour once alarm is created checkbox should be enabled until off - ✔️
+
+
+Bugs 🪲:
+- change state when i clicked on submit - ✔️
+*/
