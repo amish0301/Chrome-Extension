@@ -8,11 +8,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   water_break_input.addEventListener("change", function () {
     if (water_break_input.checked) {
-      document.getElementsByClassName("expand_water")[0].style.display = "block";
+      document.getElementsByClassName("expand_water")[0].style.display =
+        "block";
     } else {
-      document.getElementsByClassName("expand_water")[0].style.display = "none"; 
+      document.getElementsByClassName("expand_water")[0].style.display = "none";
     }
-  
+
     chrome.storage.sync.set({ isWaterChecked: water_break_input.checked });
   });
 });
@@ -54,25 +55,53 @@ function submit() {
   let time_nap = document.getElementsByName("nap_break_input")[0].value;
   console.log(time_nap);
 
-  // PENDING: send time_water and time_nap to server
   async function sendMessage({ type, time }) {
     try {
-      await chrome.runtime.sendMessage({
-        time,
-        type,
-      });
+      await chrome.runtime.sendMessage(
+        {
+          time,
+          type,
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.log(chrome.runtime.lastError);
+          } else {
+            alert(response.message);
+          }
+        }
+      );
+    } catch (error) {
+      alert(error || "Something went wrong!!");
+    }
+  }
+
+  async function cancelAlarm({ type }) {
+    try {
+      await chrome.runtime.sendMessage(
+        {
+          type,
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.log(chrome.runtime.lastError);
+          } else {
+            alert(response.message);
+          }
+        }
+      );
     } catch (error) {
       console.log(error);
     }
   }
+
   if (time_water) {
     sendMessage({ type: "water", time: parseInt(time_water) });
   }
 
   // set state if changed
-  if(!water_break_input.checked) {
+  if (!water_break_input.checked) {
     chrome.storage.sync.set({ isWaterChecked: false });
-    // stop alarm
+    cancelAlarm({ type: "remove alarm for water" });
   }
 
   // Clearing inputs
@@ -83,32 +112,15 @@ function submit() {
 
 document.getElementById("submit_btn").addEventListener("click", submit);
 
-// if(!water_break_input.checked) {
-//   // clear alarm
-//   chrome.runtime.sendMessage({
-//     type: "remove alarm for water"
-//   });
-// }
-
-// ALL Message Listening - In Testing Mode
-
-// chrome.runtime.onMessage.addListener((response, sender, sendResponse) => {
-//     if(response.message === "Removed alarm for Water") {
-//       chrome.notifications.create({
-//         type: "basic",
-//         iconUrl: "https://www.freeiconspng.com/thumbs/alert-icon/alert-icon-alert-icon-12.jpg",
-//         title: "Your Reminder",
-//         message: "Removed alarm for Water",
-//         priority: 1
-//       });
-//     }
-// })
 
 /*
-Tasks:
+Tasks 📃:
 1. Implement a dynamic checkbox behaviour once alarm is created checkbox should be enabled until off - ✔️
+2. Implement Logic to cancel alarm - ✔️
+3. Show Notification when alarm created or cancelled
 
 
 Bugs 🪲:
 - change state when i clicked on submit - ✔️
+- sendResponse is not working while creating alarm - ✔️
 */

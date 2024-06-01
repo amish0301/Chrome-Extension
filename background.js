@@ -76,18 +76,29 @@ async function createAlarms({ time, type }) {
   });
 }
 
-function stopAlarm(type) {
-  chrome.alarms.clear(type);
+async function stopAlarm(type) {
+  return new Promise((resolve, reject) => {
+    chrome.alarms.clear(type, () => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(`alarm cleared for ${type}`);
+        console.log(`Alarm cleared for ${type}`);
+      }
+    });
+  });
 }
 
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.type === "water" && request.time) {
     try {
-      await createAlarms({ time: request.time, type: "water" });
-      sendResponse({
-        success: true,
-        message: `Alarm for ${request.type} created`,
-      });
+      await createAlarms({ time: request.time, type: "water" }).then(res => {
+        sendResponse({ success: true, message: res });
+        return true;
+      }).catch(err => {
+        sendResponse({ success: false, message: err });
+        return false;
+      })
     } catch (error) {
       sendResponse({
         success: false,
@@ -97,8 +108,15 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   }
 
   if (request.type === "remove alarm for water") {
-    stopAlarm("water");
-    sendResponse({ message: "Removed alarm for Water" });
+    await stopAlarm("water")
+      .then((res) => {
+        prevTimeOfWater = 0;
+        sendResponse({ success: true, message: res });
+        return true;
+      })
+      .catch((err) => {
+        sendResponse({ success: false, message: err });
+      });
   }
 });
 
