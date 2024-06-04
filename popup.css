@@ -92,6 +92,22 @@
   left: 24px;
 }
 
+.status {
+  margin-block: 5px;
+  border: 1px solid rgb(4, 4, 30);
+  background-color: red;
+  width: 100%;
+  display: block;
+}
+
+.status span {
+  padding-block: 3px;
+  font-size: medium;
+  text-align: left;
+  font-weight: 500;
+  color: black;
+}
+
 .expand_water,
 .expand_nap {
   display: none;

@@ -13,7 +13,7 @@
     },
 
     "permissions": [
-        "contextMenus", "notifications", "alarms", "activeTab", "scripting", "storage"
+        "contextMenus", "notifications", "alarms", "activeTab", "scripting", "storage", "background"
     ]
 
 }

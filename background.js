@@ -44,7 +44,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     chrome.notifications.create({
       type: "basic",
       iconUrl:
-        "https://upload.wikimedia.org/wikipedia/commons/f/f1/Draw_alarm-clock.png",
+        "https://play-lh.googleusercontent.com/TWlBpj9QhhNqXKAzwREIPQUFVlH84Y0tOknUZIxgEZ4L1TgyI-veLvXC8-bYYDxgIafb",
       title: "Water Reminder",
       message: "Time to drink water!",
     });
@@ -62,15 +62,16 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 async function createAlarms({ time, type }) {
   return new Promise((resolve, reject) => {
-    if (time === prevTimeOfWater)
-      return reject(`Already created alarm for ${type}`);
+    if (time === prevTimeOfWater) reject(`Already created alarm for ${type}`);
     chrome.alarms.create(type, { periodInMinutes: time }, () => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       } else {
         prevTimeOfWater = time;
         console.log(`previous time of ${type} : ${prevTimeOfWater}`);
-        resolve(`alarm created for ${type}`);
+        resolve(
+          `Alarm is Created for ${type} and You'll be notified in every ${time} minutes`
+        );
       }
     });
   });
@@ -82,41 +83,67 @@ async function stopAlarm(type) {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       } else {
-        resolve(`alarm cleared for ${type}`);
-        console.log(`Alarm cleared for ${type}`);
+        resolve(`Alarm is Cleared for ${type}`);
       }
     });
   });
 }
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "water" && request.time) {
     try {
-      await createAlarms({ time: request.time, type: "water" }).then(res => {
-        sendResponse({ success: true, message: res });
-        return true;
-      }).catch(err => {
-        sendResponse({ success: false, message: err });
-        return false;
-      })
+      createAlarms({ time: request.time, type: "water" })
+        .then((res) => {
+          sendResponse({ success: true, message: res });
+        })
+        .catch((err) => {
+          sendResponse({ success: false, message: err });
+        });
+      return true;
     } catch (error) {
       sendResponse({
         success: false,
         message: "Error creating alarm: " + error.message,
       });
     }
-  }
-
-  if (request.type === "remove alarm for water") {
-    await stopAlarm("water")
+  } else if (request.type === "remove alarm for water") {
+    stopAlarm("water")
       .then((res) => {
         prevTimeOfWater = 0;
         sendResponse({ success: true, message: res });
-        return true;
       })
       .catch((err) => {
         sendResponse({ success: false, message: err });
       });
+
+    return true;
+  } else if (request.type === "successNotification") {
+    try {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl:
+          "https://cdn4.iconfinder.com/data/icons/buno-info-signs/32/__checkmark_success_ok-512.png",
+        title: "Notification",
+        message: request.message,
+      });
+    } catch (error) {
+      console.log("Error creating Success notification: " + error.message);
+    }
+    return true;
+  }
+  else if (request.type === "errorNotification") {
+    try {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl:
+          "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-256.png",
+        title: "Error",
+        message: request.message,
+      });
+      console.log("Error notification created");
+    } catch (error) {
+      console.log("Error creating Error notification: " + error.message);
+    }
   }
 });
 
@@ -129,7 +156,7 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
       iconUrl:
         "https://cdn0.iconfinder.com/data/icons/apple-apps/100/Apple_Messages-512.png",
       title: "Your Reminder",
-      message: "Thanks for installing this extension!🥰",
+      message: "I hope you find this extension useful!",
     });
   }
 });
