@@ -1,10 +1,10 @@
 {
     "manifest_version": 3,
     "version": "1.0.0",
-    "name": "Your Reminder",
-    "description": "Customized Reminders for Water breaks and much more",
+    "name": "Alertify - Custom Reminders",
+    "description": "Customized Reminders for Water breaks and much more, we care about your health and wellbeing.",
     "action": {
-        "default_title": "Your Reminder",
+        "default_title": "Alertify",
         "default_popup": "popup.html"
     },
 
@@ -13,7 +13,13 @@
     },
 
     "permissions": [
-        "contextMenus", "notifications", "alarms", "activeTab", "scripting", "storage", "background"
-    ]
+        "contextMenus", "notifications", "alarms", "scripting", "storage", "background"
+    ],
+
+    "icons": {
+        "16": "icon-16.png",
+        "48": "icon-48.png",
+        "128": "icon-128.png"
+    }
 
 }

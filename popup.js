@@ -67,9 +67,6 @@ async function sendMessage({ type, time }) {
               type: "successNotification",
               message: response.message,
             })
-
-            // set status value in popup.html
-            document.getElementById("water_status").innerText = toString(time)
           }else {
             chrome.runtime.sendMessage({
               type: "errorNotification",
@@ -144,10 +141,10 @@ Tasks 📃:
 2. Implement Logic to cancel alarm - ✔️
 3. Show Notification when alarm created or cancelled - ✔️
 4. Change Notification Icon's - ✔️
-
+5. on extension refresh, clear all alarms
 
 Bugs 🪲:
 - change state when i clicked on submit - ✔️
 - sendResponse is not working while creating alarm - ✔️
-- setStatus not working
+- notification not working when i'm interacting from Extension
 */

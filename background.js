@@ -154,9 +154,9 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
     chrome.notifications.create({
       type: "basic",
       iconUrl:
-        "https://cdn0.iconfinder.com/data/icons/apple-apps/100/Apple_Messages-512.png",
-      title: "Your Reminder",
-      message: "I hope you find this extension useful!",
+        "icon.png",
+      title: "Alertify",
+      message: "Thankyou For Installing Alertify!",
     });
   }
 });
