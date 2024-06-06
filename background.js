@@ -33,8 +33,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.windows.create({
       url: "popup.html",
       type: "popup",
-      width: 370,
-      height: 325,
+      width: 350,
+      height: 450,
     });
   }
 });
@@ -45,7 +45,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       type: "basic",
       iconUrl:
         "https://play-lh.googleusercontent.com/TWlBpj9QhhNqXKAzwREIPQUFVlH84Y0tOknUZIxgEZ4L1TgyI-veLvXC8-bYYDxgIafb",
-      title: "Water Reminder",
+      title: "Water Break",
       message: "Time to drink water!",
     });
   }
@@ -53,16 +53,15 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "nap") {
     chrome.notifications.create({
       type: "basic",
-      iconUrl: "icon.png",
-      title: "Nap Reminder",
-      message: "Time to take a nap!",
+      iconUrl: "break.png",
+      title: "Break Time",
+      message: "Time to take a Braek from Screen!",
     });
   }
 });
 
 async function createAlarms({ time, type }) {
   return new Promise((resolve, reject) => {
-    if (time === prevTimeOfWater) reject(`Already created alarm for ${type}`);
     chrome.alarms.create(type, { periodInMinutes: time }, () => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
@@ -106,7 +105,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         message: "Error creating alarm: " + error.message,
       });
     }
-  } else if (request.type === "remove alarm for water") {
+  }else if(request.type === "nap" && request.time){
+    try {
+      createAlarms({ time: request.time, type: "nap" })
+        .then((res) => {
+          sendResponse({ success: true, message: res });
+        })
+        .catch((err) => {
+          sendResponse({ success: false, message: err });
+        });
+      return true;
+    } catch (error) {
+      sendResponse({
+        success: false,
+        message: "Error creating alarm: " + error.message,
+      });
+    }
+  }else if (request.type === "remove alarm for water") {
     stopAlarm("water")
       .then((res) => {
         prevTimeOfWater = 0;
@@ -117,7 +132,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
 
     return true;
-  } else if (request.type === "successNotification") {
+  }else if(request.type === "remove alarm for nap"){
+    stopAlarm("nap")
+      .then((res) => {
+        prevTimeOfWater = 0;
+        sendResponse({ success: true, message: res });
+      })
+      .catch((err) => {
+        sendResponse({ success: false, message: err });
+      });
+
+    return true;
+  }else if (request.type === "successNotification") {
     try {
       chrome.notifications.create({
         type: "basic",
@@ -130,8 +156,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log("Error creating Success notification: " + error.message);
     }
     return true;
-  }
-  else if (request.type === "errorNotification") {
+  }else if (request.type === "errorNotification") {
     try {
       chrome.notifications.create({
         type: "basic",
