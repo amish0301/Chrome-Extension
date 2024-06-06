@@ -123,7 +123,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         type: "basic",
         iconUrl:
           "https://cdn4.iconfinder.com/data/icons/buno-info-signs/32/__checkmark_success_ok-512.png",
-        title: "Notification",
+        title: "Alertify",
         message: request.message,
       });
     } catch (error) {

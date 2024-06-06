@@ -2,11 +2,14 @@ const nap_break_input = document.getElementById("nap_break");
 const water_break_input = document.getElementById("water_break");
 
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.sync.get(["isWaterChecked"]).then((result) => {
-    water_break_input.checked = result.isWaterChecked || false;
-  }).catch((err) => {
-    console.log('Error in storage');
-  });
+  chrome.storage.sync
+    .get(["isWaterChecked"])
+    .then((result) => {
+      water_break_input.checked = result.isWaterChecked || false;
+    })
+    .catch((err) => {
+      console.log("Error in storage");
+    });
 
   water_break_input.addEventListener("change", function () {
     if (water_break_input.checked) {
@@ -18,15 +21,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chrome.storage.sync.set({ isWaterChecked: water_break_input.checked });
   });
+
+  chrome.storage.sync
+  .get(["isNapChecked"])
+  .then((result) => {
+    nap_break_input.checked = result.isNapChecked || false;
+  })
+  .catch((err) => {
+    console.log("Error in storage");
+  });
+
+  nap_break_input.addEventListener("change", function () {
+    if (nap_break_input.checked) {
+      document.getElementsByClassName("expand_nap")[0].style.display =
+        "block";
+    } else {
+      document.getElementsByClassName("expand_nap")[0].style.display = "none";
+    }
+
+    chrome.storage.sync.set({ isNapChecked: nap_break_input.checked });
+  });
 });
 
-nap_break_input.addEventListener("change", function () {
-  if (nap_break_input.checked) {
-    document.getElementsByClassName("expand_nap")[0].style.display = "block";
-  } else {
-    document.getElementsByClassName("expand_nap")[0].style.display = "none";
-  }
-});
+// water_break_input.addEventListener("change", function () {
+//   if (water_break_input.checked) {
+//     document.getElementsByClassName("expand_water")[0].style.display =
+//       "block";
+//   } else {
+//     document.getElementsByClassName("expand_water")[0].style.display = "none";
+//   }
+// });
 
 const collapseBtn = document.getElementsByClassName("collapsible")[0];
 collapseBtn.addEventListener("click", function () {
@@ -61,17 +85,18 @@ async function sendMessage({ type, time }) {
         if (chrome.runtime.lastError) {
           console.log(chrome.runtime.lastError);
         } else {
-          if(response.success) {
+          if (response.success) {
             // send notification to client
             chrome.runtime.sendMessage({
               type: "successNotification",
               message: response.message,
-            })
-          }else {
+            });
+          } else {
             chrome.runtime.sendMessage({
               type: "errorNotification",
-              message: "Oops! Something went wrong. Please try to refresh the extension.",
-            })
+              message:
+                "Oops! Something went wrong. Please try to refresh the extension.",
+            });
           }
         }
       }
@@ -120,7 +145,7 @@ function submit() {
   if (time_water) {
     sendMessage({ type: "water", time: parseInt(time_water) });
   }
- 
+
   // set state if changed
   if (!water_break_input.checked) {
     chrome.storage.sync.set({ isWaterChecked: false });
