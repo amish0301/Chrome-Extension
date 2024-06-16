@@ -1,11 +1,14 @@
 const nap_break_input = document.getElementById("nap_break");
 const water_break_input = document.getElementById("water_break");
+let water_time = -1;
+let nap_time = -1;
 
+// for preserving the state
 document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.sync
     .get(["isWaterChecked"])
     .then((result) => {
-      water_break_input.checked = result.isWaterChecked || false;
+      water_break_input.checked = result.isWaterChecked;
     })
     .catch((err) => {
       console.log("Error in storage");
@@ -19,27 +22,31 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementsByClassName("expand_water")[0].style.display = "none";
     }
 
-    chrome.storage.sync.set({ isWaterChecked: water_break_input.checked });
+    if (water_time > 0 && water_break_input.checked)
+      chrome.storage.sync.set({ isWaterChecked: true });
+    else chrome.storage.sync.set({ isWaterChecked: false });
   });
 
   chrome.storage.sync
     .get(["isNapChecked"])
     .then((result) => {
-      nap_break_input.checked = result.isNapChecked || false;
+      nap_break_input.checked = result.isNapChecked;
     })
     .catch((err) => {
       console.log("Error in storage");
     });
 
-  nap_break_input.addEventListener("change", function () {
-    if (nap_break_input.checked) {
-      document.getElementsByClassName("expand_nap")[0].style.display = "block";
-    } else {
-      document.getElementsByClassName("expand_nap")[0].style.display = "none";
-    }
-
-    chrome.storage.sync.set({ isNapChecked: nap_break_input.checked });
-  });
+    nap_break_input.addEventListener("change", function () {
+      if (nap_break_input.checked) {
+        document.getElementsByClassName("expand_nap")[0].style.display = "block";
+      } else {
+        document.getElementsByClassName("expand_nap")[0].style.display = "none";
+      }
+    
+      if (nap_time > 0 && nap_break_input.checked)
+        chrome.storage.sync.set({ isNapChecked: true });
+      else chrome.storage.sync.set({ isNapChecked: false });
+    });
 });
 
 const collapseBtn = document.getElementsByClassName("collapsible")[0];
@@ -81,6 +88,9 @@ async function sendMessage({ type, time }) {
               type: "successNotification",
               message: response.message,
             });
+
+            if (type == "water") water_time = time;
+            if (type == "nap") nap_time = time;
           } else {
             chrome.runtime.sendMessage({
               type: "errorNotification",
@@ -105,15 +115,18 @@ async function cancelAlarm({ type }) {
       {
         type,
       },
-      (response) => {
+      async (response) => {
         if (chrome.runtime.lastError) {
           console.log(chrome.runtime.lastError);
         } else {
           // send notification to client
-          chrome.runtime.sendMessage({
+          await chrome.runtime.sendMessage({
             type: "successNotification",
             message: response.message,
           });
+
+          if (type == "remove alarm for water") water_time = -1;
+          if (type == "remove alarm for nap") nap_time = -1;
         }
       }
     );
@@ -129,24 +142,24 @@ async function submit() {
   let time_water = document.getElementsByName("water_break_input")[0].value;
   let time_nap = document.getElementsByName("nap_break_input")[0].value;
 
-  if (time_water) {
+  if (time_water > 0) {
     await sendMessage({ type: "water", time: parseInt(time_water) });
+    chrome.storage.sync.set({ isWaterChecked: true });
   }
 
-  // Providing buffer time
-  if (time_nap) {
+  if (time_nap > 0) {
     await sendMessage({ type: "nap", time: parseInt(time_nap) });
+    chrome.storage.sync.set({ isNapChecked: true });
   }
 
-  // set state if changed
-  if (!water_break_input.checked) {
+  if (!water_break_input.checked && water_time) {
+    await cancelAlarm({ type: "remove alarm for water" });
     chrome.storage.sync.set({ isWaterChecked: false });
-    cancelAlarm({ type: "remove alarm for water" });
   }
 
-  if (!nap_break_input.checked) {
+  if (!nap_break_input.checked && nap_time > 0) {
+    await cancelAlarm({ type: "remove alarm for nap" });
     chrome.storage.sync.set({ isNapChecked: false });
-    cancelAlarm({ type: "remove alarm for nap" });
   }
 
   // Clearing inputs
@@ -163,10 +176,10 @@ Tasks 📃:
 2. Implement Logic to cancel alarm - ✔️
 3. Show Notification when alarm created or cancelled - ✔️
 4. Change Notification Icon's - ✔️
-5. on extension refresh, clear all alarms
 
 Bugs 🪲:
 - change state when i clicked on submit - ✔️
 - sendResponse is not working while creating alarm - ✔️
-- notification not working when i'm interacting from Extension
+- if alarm is not created, still notification getting for cleared alarm - ✔️
+- alarm works only on when input time is more than 1 minute - ✔️
 */

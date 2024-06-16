@@ -93,7 +93,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     try {
       createAlarms({ time: request.time, type: "water" })
         .then((res) => {
-          sendResponse({ success: true, message: res });
+          sendResponse({ success: true, message: res});
         })
         .catch((err) => {
           sendResponse({ success: false, message: err });
