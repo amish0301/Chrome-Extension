@@ -46,7 +46,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       iconUrl:
         "https://play-lh.googleusercontent.com/TWlBpj9QhhNqXKAzwREIPQUFVlH84Y0tOknUZIxgEZ4L1TgyI-veLvXC8-bYYDxgIafb",
       title: "Water Break",
-      message: "Time to drink water!",
+      message: "Time to drink water!"
     });
   }
 
