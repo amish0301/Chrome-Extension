@@ -1,13 +1,14 @@
 * {
   box-sizing: border-box;
   margin: 0;
+  padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 body {
-  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  border: 2px solid white;
 }
 
 .card {
@@ -17,7 +18,8 @@ body {
   border-radius: 5px;
   padding: 20px;
   text-align: center;
-  background-color: rgb(212 212 216);
+  /* background-color: rgb(212 212 216); */
+  background-color: #141e24;
   position: relative;
 }
 
@@ -27,6 +29,13 @@ body {
 
 .heading {
   margin-bottom: 10px;
+}
+
+h2 {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 .main_controller {
@@ -153,8 +162,9 @@ body {
 .nap_content input {
   width: 100%;
   border-radius: 5px;
+  border: none;
+  outline: none;
   padding: 10px;
-  border: 1px solid rgb(213, 213, 215);
   font-size: medium;
 }
 
@@ -173,7 +183,8 @@ body {
   margin-top: 1.2rem;
   font-size: medium;
   cursor: pointer;
-  font-weight: 600;
+  border: none;
+  font-weight: 700;
   width: 100%;
   transition: cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s;
 }

@@ -140,10 +140,10 @@ async function submit() {
   let input_nap_time = document.getElementsByName("nap_break_input")[0].value;
 
   if (input_water_time > 0)
-    await sendMessage({ type: "water", time: parseInt(time_water) });
+    await sendMessage({ type: "water", time: parseInt(input_water_time) });
 
   if (input_nap_time > 0)
-    await sendMessage({ type: "nap", time: parseInt(time_nap) });
+    await sendMessage({ type: "nap", time: parseInt(input_nap_time) });
 
   let water_state = await chrome.storage.sync.get("isWaterChecked");
   let water_time = await chrome.storage.sync.get("prevTimeOfWater");
@@ -154,7 +154,7 @@ async function submit() {
 
   let nap_state = await chrome.storage.sync.get("isNapChecked");
   let nap_time = await chrome.storage.sync.get("prevTimeOfNap");
-  if (!nap_time.prevTimeOfNap > 0 && !nap_state.isNapChecked) {
+  if (nap_time.prevTimeOfNap > 0 && !nap_state.isNapChecked) {
     await cancelAlarm({ type: "remove alarm for nap" });
     chrome.storage.sync.set({ isNapChecked: false });
   }
