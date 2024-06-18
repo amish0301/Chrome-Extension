@@ -3,16 +3,13 @@ const water_break_input = document.getElementById("water_break");
 const regex = /^\d+$/;
 
 // for preserving the state
-document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.sync
-    .get(["isWaterChecked"])
-    .then((result) => {
-      const time = chrome.storage.sync.get("prevTimeOfWater");
-      water_break_input.checked = result.isWaterChecked && time > 0;
-    })
-    .catch((err) => {
-      console.log("Error in storage");
-    });
+document.addEventListener("DOMContentLoaded", async () => {
+  const water_state = await chrome.storage.sync.get("isWaterChecked");
+  const water_time = await chrome.storage.sync.get("prevTimeOfWater");
+
+  if (water_time.prevTimeOfWater < 0 && water_state.isWaterChecked)
+    water_break_input.checked = false;
+  else water_break_input.checked = water_state.isWaterChecked;
 
   water_break_input.addEventListener("change", function () {
     if (water_break_input.checked) {
@@ -21,28 +18,25 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       document.getElementsByClassName("expand_water")[0].style.display = "none";
     }
-
-    chrome.storage.sync.set({ isWaterChecked: water_break_input.checked });
+    chrome.storage.sync.set({
+      isWaterChecked: water_break_input.checked,
+    });
   });
 
-  chrome.storage.sync
-    .get(["isNapChecked"])
-    .then((result) => {
-      const time = chrome.storage.sync.get("prevTimeOfNap");
-      nap_break_input.checked = result.isNapChecked && time > 0;
-    })
-    .catch((err) => {
-      console.log("Error in storage");
-    });
+  const nap_state = await chrome.storage.sync.get("isNapChecked");
+  const nap_time = await chrome.storage.sync.get("prevTimeOfNap");
+
+  if (nap_time.prevTimeOfNap < 0 && nap_state.isNapChecked)
+    nap_break_input.checked = false;
+  else nap_break_input.checked = nap_state.isNapChecked;
 
   nap_break_input.addEventListener("change", function () {
     if (nap_break_input.checked) {
       document.getElementsByClassName("expand_nap")[0].style.display = "block";
-      chrome.storage.sync.set({ isNapChecked: true });
     } else {
       document.getElementsByClassName("expand_nap")[0].style.display = "none";
-      chrome.storage.sync.set({ isNapChecked: false });
     }
+    chrome.storage.sync.set({ isNapChecked: nap_break_input.checked });
   });
 });
 
@@ -139,8 +133,9 @@ async function cancelAlarm({ type }) {
 }
 
 async function submit() {
-  let input_water_time = document.getElementsByName("water_break_input")[0].value;
-  let input_nap_time = document.getElementsByName("nap_break_input")[0].value;
+  const input_water_time =
+    document.getElementsByName("water_break_input")[0].value;
+  const input_nap_time = document.getElementsByName("nap_break_input")[0].value;
 
   if (regex.test(input_water_time) && input_water_time > 0) {
     await sendMessage({ type: "water", time: parseInt(input_water_time) });
@@ -152,15 +147,15 @@ async function submit() {
     chrome.storage.sync.set({ isNapChecked: true });
   }
 
-  let water_state = await chrome.storage.sync.get("isWaterChecked");
-  let water_time = await chrome.storage.sync.get("prevTimeOfWater");
+  const water_state = await chrome.storage.sync.get("isWaterChecked");
+  const water_time = await chrome.storage.sync.get("prevTimeOfWater");
   if (water_time.prevTimeOfWater > 0 && !water_state.isWaterChecked) {
     await cancelAlarm({ type: "remove alarm for water" });
     chrome.storage.sync.set({ isWaterChecked: false });
   }
 
-  let nap_state = await chrome.storage.sync.get("isNapChecked");
-  let nap_time = await chrome.storage.sync.get("prevTimeOfNap");
+  const nap_state = await chrome.storage.sync.get("isNapChecked");
+  const nap_time = await chrome.storage.sync.get("prevTimeOfNap");
   if (nap_time.prevTimeOfNap > 0 && !nap_state.isNapChecked) {
     await cancelAlarm({ type: "remove alarm for nap" });
     chrome.storage.sync.set({ isNapChecked: false });
