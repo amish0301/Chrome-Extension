@@ -27,5 +27,8 @@ There are 2 ways to install this Extension,
 4. Click `Load unpacked` and select the extension folder.
 
 ## **Usage**
-after successfully installing the extension, You will get the below Notification.
-![]()
+after Successfully installing the extension, You will get the below Notification.
+![After Install Notification](/install_noti.png)
+
+Extension Preview
+![App preview](/App.png)
