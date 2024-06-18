@@ -1,12 +1,14 @@
 const nap_break_input = document.getElementById("nap_break");
 const water_break_input = document.getElementById("water_break");
+const regex = /^\d+$/;
 
 // for preserving the state
 document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.sync
     .get(["isWaterChecked"])
     .then((result) => {
-      water_break_input.checked = result.isWaterChecked;
+      const time = chrome.storage.sync.get("prevTimeOfWater");
+      water_break_input.checked = result.isWaterChecked && time > 0;
     })
     .catch((err) => {
       console.log("Error in storage");
@@ -16,17 +18,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (water_break_input.checked) {
       document.getElementsByClassName("expand_water")[0].style.display =
         "block";
-      chrome.storage.sync.set({ isWaterChecked: true });
     } else {
       document.getElementsByClassName("expand_water")[0].style.display = "none";
-      chrome.storage.sync.set({ isWaterChecked: false });
     }
+
+    chrome.storage.sync.set({ isWaterChecked: water_break_input.checked });
   });
 
   chrome.storage.sync
     .get(["isNapChecked"])
     .then((result) => {
-      nap_break_input.checked = result.isNapChecked;
+      const time = chrome.storage.sync.get("prevTimeOfNap");
+      nap_break_input.checked = result.isNapChecked && time > 0;
     })
     .catch((err) => {
       console.log("Error in storage");
@@ -139,11 +142,15 @@ async function submit() {
   let input_water_time = document.getElementsByName("water_break_input")[0].value;
   let input_nap_time = document.getElementsByName("nap_break_input")[0].value;
 
-  if (input_water_time > 0)
+  if (regex.test(input_water_time) && input_water_time > 0) {
     await sendMessage({ type: "water", time: parseInt(input_water_time) });
+    chrome.storage.sync.set({ isWaterChecked: true });
+  }
 
-  if (input_nap_time > 0)
+  if (regex.test(input_nap_time) && input_nap_time > 0) {
     await sendMessage({ type: "nap", time: parseInt(input_nap_time) });
+    chrome.storage.sync.set({ isNapChecked: true });
+  }
 
   let water_state = await chrome.storage.sync.get("isWaterChecked");
   let water_time = await chrome.storage.sync.get("prevTimeOfWater");
