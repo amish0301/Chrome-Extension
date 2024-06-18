@@ -1,4 +1,4 @@
-# Chrome Extension Project
+<h1 align="center">Chrome Extension</h1>
 
 ## **Overview**
 
@@ -27,8 +27,9 @@ There are 2 ways to install this Extension,
 4. Click `Load unpacked` and select the extension folder.
 
 ## **Usage**
-after Successfully installing the extension, You will get the below Notification.
-![After Install Notification](/install_noti.png)
+After successfully installing the extension, You will get the below Notification.
+![notification](install_noti.png)
 
-Extension Preview
-![App preview](/App.png)
+Extension will look like:
+
+<img width="400" height="500" src="App.png" alt="Material Bread logo">
