@@ -168,17 +168,3 @@ async function submit() {
 }
 
 document.getElementById("submit_btn").addEventListener("click", submit);
-
-/*
-Tasks 📃:
-1. Implement a dynamic checkbox behaviour once alarm is created checkbox should be enabled until off - ✔️
-2. Implement Logic to cancel alarm - ✔️
-3. Show Notification when alarm created or cancelled - ✔️
-4. Change Notification Icon's - ✔️
-
-Bugs 🪲:
-- change state when i clicked on submit - ✔️
-- sendResponse is not working while creating alarm - ✔️
-- if alarm is not created, still notification getting for cleared alarm - ✔️
-- alarm works only on when input time is more than 1 minute - ✔️
-*/

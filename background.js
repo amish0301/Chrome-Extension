@@ -33,8 +33,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.windows.create({
       url: "popup.html",
       type: "popup",
-      width: 350,
-      height: 450,
+      width: 360,
+      height: 500,
     });
   }
 });
