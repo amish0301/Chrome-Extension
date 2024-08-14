@@ -1,6 +1,4 @@
 // CONTEXT MENUS - CREATE
-let prevTimeOfWater = 0;
-let prevTimeOfNap = 0;
 
 function createContextMenu() {
   chrome.contextMenus.create(
@@ -60,14 +58,17 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-async function createAlarms({ time, type }) {
+async function createAlarms({ time, type, reset }) {
   return new Promise((resolve, reject) => {
     chrome.alarms.create(type, { periodInMinutes: time }, () => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       } else {
-        prevTimeOfWater = time;
-        console.log(`previous time of ${type} : ${prevTimeOfWater}`);
+        if(!reset) {
+          if(type == "water") chrome.storage.sync.set({ prevTimeOfWater: time });
+          if(type == "nap") chrome.storage.sync.set({ prevTimeOfNap: time });
+        }
+        console.log(`previous time of ${type} : ${time}`);
         resolve(
           `Alarm is Created for ${type} and You'll be notified in every ${time} minutes`
         );
@@ -91,7 +92,7 @@ async function stopAlarm(type) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "water" && request.time) {
     try {
-      createAlarms({ time: request.time, type: "water" })
+      createAlarms({ time: request.time, type: "water", reset: false })
         .then((res) => {
           sendResponse({ success: true, message: res});
         })
@@ -107,7 +108,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
   }else if(request.type === "nap" && request.time){
     try {
-      createAlarms({ time: request.time, type: "nap" })
+      createAlarms({ time: request.time, type: "nap", reset: false })
         .then((res) => {
           sendResponse({ success: true, message: res });
         })
@@ -185,3 +186,16 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
     });
   }
 });
+
+// on Suspend and onStartup
+chrome.runtime.onSuspend.addListener(() => {
+    chrome.alarms.clearAll();
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  const valueOfWater = await chrome.storage.sync.get("prevTimeOfWater");
+  const valueOfNap = await chrome.storage.sync.get("prevTimeOfNap");
+  await createAlarms({ time: valueOfWater.prevTimeOfWater, type: "water", reset: true });
+  await createAlarms({ time: valueOfNap.prevTimeOfNap, type: "nap", reset: true });
+  console.log("alarms created again");
+})
