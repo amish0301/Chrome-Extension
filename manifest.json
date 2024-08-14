@@ -5,21 +5,21 @@
     "description": "Customized Reminders for Water breaks and much more, we care about your health and wellbeing.",
     "action": {
         "default_title": "Alertify",
-        "default_popup": "popup.html"
+        "default_popup": "/public/popup.html"
     },
 
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "/public/background.js"
     },
 
     "permissions": [
-        "contextMenus", "notifications", "alarms", "scripting", "storage", "background"
+        "contextMenus", "notifications", "alarms", "scripting", "storage"
     ],
 
     "icons": {
-        "16": "icon-16.png",
-        "48": "icon-48.png",
-        "128": "icon-128.png"
+        "16": "/public/assets/icon-16.png",
+        "48": "/public/assets/icon-48.png",
+        "128": "/public/assets/icon-128.png"
     }
 
 }
