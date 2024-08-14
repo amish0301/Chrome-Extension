@@ -29,7 +29,7 @@ function createContextMenu() {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "reminder") {
     chrome.windows.create({
-      url: "popup.html",
+      url: "/public/popup.html",
       type: "popup",
       width: 360,
       height: 500,
@@ -180,7 +180,7 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
     chrome.notifications.create({
       type: "basic",
       iconUrl:
-        "icon.png",
+        "/public/assets/icon.png",
       title: "Alertify",
       message: "Thankyou For Installing Alertify!",
     });
