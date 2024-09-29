@@ -39,7 +39,7 @@ function createContextMenu() {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "reminder") {
     chrome.windows.create({
-      url: chrome.runtime.getURL("./popup.html"), 
+      url: chrome.runtime.getURL("/public/popup.html"), 
       type: "popup",
       width: 360,
       height: 500,
