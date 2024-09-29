@@ -60,7 +60,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "nap") {
     chrome.notifications.create({
       type: "basic",
-      iconUrl: "break.png",
+      iconUrl: "./assets/break.png",
       title: "Break Time",
       message: "Time to take a Braek from Screen!",
     });
