@@ -1,35 +1,45 @@
-// CONTEXT MENUS - CREATE
-
+// CONTEXT MENU - CREATE
 function createContextMenu() {
-  chrome.contextMenus.create(
-    {
-      id: "reminder",
-      title: "Set Your Reminder",
-      contexts: ["all"],
-    },
-    async () => {
-      if (chrome.runtime.lastError) {
-        console.log("Error in creating context menu", chrome.runtime.lastError);
-      } else {
-        chrome.storage.local.set({ menuItemId: "reminder" }, () => {
-          if (chrome.runtime.lastError) {
-            console.error(
-              "Error storing context menu ID: " +
-                chrome.runtime.lastError.message
-            );
-          } else {
-            console.log("Context menu ID stored");
-          }
-        });
-      }
+  // Remove existing menu if it exists to prevent duplicate entries
+  chrome.contextMenus.removeAll(() => {
+    if (chrome.runtime.lastError) {
+      console.log("Error clearing previous context menus", chrome.runtime.lastError);
     }
-  );
+    
+    // Create new context menu
+    chrome.contextMenus.create(
+      {
+        id: "reminder",
+        title: "Set Your Reminder",
+        contexts: ["all"],
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.log("Error in creating context menu", chrome.runtime.lastError);
+        } else {
+          console.log("Context menu created successfully");
+
+          // Store the menu item ID for later reference
+          chrome.storage.local.set({ menuItemId: "reminder" }, () => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                "Error storing context menu ID: " + chrome.runtime.lastError.message
+              );
+            } else {
+              console.log("Context menu ID stored");
+            }
+          });
+        }
+      }
+    );
+  });
 }
 
+// Listener for context menu click
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "reminder") {
     chrome.windows.create({
-      url: "/public/popup.html",
+      url: chrome.runtime.getURL("./popup.html"), 
       type: "popup",
       width: 360,
       height: 500,
@@ -41,10 +51,9 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "water") {
     chrome.notifications.create({
       type: "basic",
-      iconUrl:
-        "https://play-lh.googleusercontent.com/TWlBpj9QhhNqXKAzwREIPQUFVlH84Y0tOknUZIxgEZ4L1TgyI-veLvXC8-bYYDxgIafb",
+      iconUrl: "./assets/water_break.png",
       title: "Water Break",
-      message: "Time to drink water!"
+      message: "Time to drink water!",
     });
   }
 
@@ -60,20 +69,23 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 async function createAlarms({ time, type, reset }) {
   return new Promise((resolve, reject) => {
-    chrome.alarms.create(type, { periodInMinutes: time }, () => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        if(!reset) {
-          if(type == "water") chrome.storage.sync.set({ prevTimeOfWater: time });
-          if(type == "nap") chrome.storage.sync.set({ prevTimeOfNap: time });
-        }
-        console.log(`previous time of ${type} : ${time}`);
-        resolve(
-          `Alarm is Created for ${type} and You'll be notified in every ${time} minutes`
-        );
+    try {
+      chrome.alarms.create(type, { periodInMinutes: time });
+
+      if (!reset) {
+        const update = {};
+        if (type === "water") update.prevTimeOfWater = time;
+        if (type === "nap") update.prevTimeOfNap = time;
+        chrome.storage.sync.set(update);
       }
-    });
+
+      console.log(`Previous time of ${type}: ${time}`);
+      resolve(
+        `Alarm created for ${type}. You'll be notified every ${time} minutes.`
+      );
+    } catch (error) {
+      reject(`Error creating alarm for ${type}: ${error.message}`);
+    }
   });
 }
 
@@ -83,73 +95,61 @@ async function stopAlarm(type) {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       } else {
-        resolve(`Alarm is Cleared for ${type}`);
+        const update = {};
+        if (type === "water") update.prevTimeOfWater = -1;
+        if (type === "nap") update.prevTimeOfNap = -1;
+        chrome.storage.sync.set(update);
+
+        resolve(`Alarm cleared for ${type}`);
       }
     });
   });
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const handleAlarmCreation = async (type, time) => {
+    try {
+      const message = await createAlarms({ time, type, reset: false });
+      sendResponse({ success: true, message });
+    } catch (error) {
+      sendResponse({ success: false, message: error });
+    }
+  };
+  
+  const handleAlarmRemoval = async (type) => {
+    try {
+      const message = await stopAlarm(type);
+      sendResponse({ success: true, message });
+    } catch (error) {
+      sendResponse({ success: false, message: error });
+    }
+  };
+
   if (request.type === "water" && request.time) {
-    try {
-      createAlarms({ time: request.time, type: "water", reset: false })
-        .then((res) => {
-          sendResponse({ success: true, message: res});
-        })
-        .catch((err) => {
-          sendResponse({ success: false, message: err });
-        });
-      return true;
-    } catch (error) {
-      sendResponse({
-        success: false,
-        message: "Error creating alarm: " + error.message,
-      });
-    }
-  }else if(request.type === "nap" && request.time){
-    try {
-      createAlarms({ time: request.time, type: "nap", reset: false })
-        .then((res) => {
-          sendResponse({ success: true, message: res });
-        })
-        .catch((err) => {
-          sendResponse({ success: false, message: err });
-        });
-      return true;
-    } catch (error) {
-      sendResponse({
-        success: false,
-        message: "Error creating alarm: " + error.message,
-      });
-    }
-  }else if (request.type === "remove alarm for water") {
-    stopAlarm("water")
-      .then((res) => {
-        prevTimeOfWater = 0;
-        sendResponse({ success: true, message: res });
-      })
-      .catch((err) => {
-        sendResponse({ success: false, message: err });
-      });
+    handleAlarmCreation("water", request.time);
+    return;
+  }
 
+  if (request.type === "nap" && request.time) {
+    handleAlarmCreation("nap", request.time);
     return true;
-  }else if(request.type === "remove alarm for nap"){
-    stopAlarm("nap")
-      .then((res) => {
-        prevTimeOfWater = 0;
-        sendResponse({ success: true, message: res });
-      })
-      .catch((err) => {
-        sendResponse({ success: false, message: err });
-      });
+  }
 
+  if (request.type === "remove alarm for water") {
+    handleAlarmRemoval("water");
     return true;
-  }else if (request.type === "successNotification") {
+  }
+
+  if (request.type === "remove alarm for nap") {
+    handleAlarmRemoval("nap");
+    return true;
+  }
+
+  if (request.type === "successNotification") {
     try {
       chrome.notifications.create({
         type: "basic",
-        iconUrl:
-          "https://cdn4.iconfinder.com/data/icons/buno-info-signs/32/__checkmark_success_ok-512.png",
+        iconUrl: "https://cdn4.iconfinder.com/data/icons/buno-info-signs/32/__checkmark_success_ok-512.png",
         title: "Alertify",
         message: request.message,
       });
@@ -157,12 +157,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log("Error creating Success notification: " + error.message);
     }
     return true;
-  }else if (request.type === "errorNotification") {
+  }
+
+  if (request.type === "errorNotification") {
     try {
       chrome.notifications.create({
         type: "basic",
-        iconUrl:
-          "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-256.png",
+        iconUrl: "https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678069-sign-error-256.png",
         title: "Error",
         message: request.message,
       });
@@ -173,14 +174,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// create context menu
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   createContextMenu();
   if (reason === "install") {
     chrome.notifications.create({
       type: "basic",
-      iconUrl:
-        "/public/assets/icon.png",
+      iconUrl: "./assets/icon.png",
       title: "Alertify",
       message: "Thankyou For Installing Alertify!",
     });
@@ -189,13 +188,21 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
 
 // on Suspend and onStartup
 chrome.runtime.onSuspend.addListener(() => {
-    chrome.alarms.clearAll();
+  chrome.alarms.clearAll();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  const valueOfWater = await chrome.storage.sync.get("prevTimeOfWater");
-  const valueOfNap = await chrome.storage.sync.get("prevTimeOfNap");
-  await createAlarms({ time: valueOfWater.prevTimeOfWater, type: "water", reset: true });
-  await createAlarms({ time: valueOfNap.prevTimeOfNap, type: "nap", reset: true });
-  console.log("alarms created again");
-})
+  createContextMenu();
+  const { prevTimeOfWater, prevTimeOfNap } = await chrome.storage.sync.get([
+    "prevTimeOfWater",
+    "prevTimeOfNap",
+  ]);
+
+  if (prevTimeOfWater > 0) {
+    await createAlarms({ time: prevTimeOfWater, type: "water", reset: true });
+  }
+
+  if (prevTimeOfNap > 0) {
+    await createAlarms({ time: prevTimeOfNap, type: "nap", reset: true });
+  }
+});
