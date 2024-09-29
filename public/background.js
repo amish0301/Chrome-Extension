@@ -127,7 +127,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.type === "water" && request.time) {
     handleAlarmCreation("water", request.time);
-    return;
+    return true;
   }
 
   if (request.type === "nap" && request.time) {

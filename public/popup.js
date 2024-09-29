@@ -1,6 +1,8 @@
 const nap_break_input = document.getElementById("nap_break");
 const water_break_input = document.getElementById("water_break");
-const waterBreakInput = document.querySelector("input[name='water_break_input']");
+const waterBreakInput = document.querySelector(
+  "input[name='water_break_input']"
+);
 const napBreakInput = document.querySelector("input[name='nap_break_input']");
 
 const regex = /^\d+$/;
@@ -62,39 +64,33 @@ collapseBtn2.addEventListener("click", function () {
 
 async function sendMessage({ type, time }) {
   try {
-    await chrome.runtime.sendMessage(
-      {
-        time,
-        type,
-      },
-      (response) => {
-        if (chrome.runtime.lastError) {
-          console.log(chrome.runtime.lastError);
-        } else {
-          if (response.success) {
-            // send notification to client
-            chrome.runtime.sendMessage({
-              type: "successNotification",
-              message: response.message,
-            });
+    await chrome.runtime.sendMessage({ time, type }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.log(chrome.runtime.lastError.message);
+      } else if (response && response.success) {
+        // Send success notification
+        chrome.runtime.sendMessage({
+          type: "successNotification",
+          message: response.message,
+        });
 
-            if (type == "water")
-              chrome.storage.sync.set({ prevTimeOfWater: time });
-            if (type == "nap") chrome.storage.sync.set({ prevTimeOfNap: time });
-          } else {
-            chrome.runtime.sendMessage({
-              type: "errorNotification",
-              message:
-                "Oops! Something went wrong. Please try to refresh the extension.",
-            });
-          }
+        // Save the previous time to storage
+        if (type === "water") {
+          chrome.storage.sync.set({ prevTimeOfWater: time });
+        } else if (type === "nap") {
+          chrome.storage.sync.set({ prevTimeOfNap: time });
         }
+      } else {
+        chrome.runtime.sendMessage({
+          type: "errorNotification",
+          message: response.message || "Failed to set the alarm.",
+        });
       }
-    );
+    });
   } catch (error) {
-    await chrome.runtime.sendMessage({
+    chrome.runtime.sendMessage({
       type: "errorNotification",
-      message: error || "an Error Occured while creating alarm",
+      message: error.message || "An error occurred while creating the alarm",
     });
   }
 }
@@ -131,8 +127,7 @@ async function cancelAlarm({ type }) {
 }
 
 async function submit() {
-  const input_water_time =
-    waterBreakInput.value;
+  const input_water_time = waterBreakInput.value;
   const input_nap_time = napBreakInput.value;
 
   try {
