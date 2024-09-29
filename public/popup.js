@@ -35,6 +35,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         nap_break_input.checked ? "block" : "none";
       chrome.storage.sync.set({ isNapChecked: nap_break_input.checked });
     });
+
+    displayAlarmValues();
   } catch (error) {
     console.error("Error retrieving state from storage:", error);
   }
@@ -174,5 +176,25 @@ async function submit() {
     console.error("Error occurred during submission:", error);
   }
 }
+
+async function displayAlarmValues() {
+  try {
+    const { prevTimeOfWater, prevTimeOfNap } = await chrome.storage.sync.get(["prevTimeOfWater", "prevTimeOfNap"]);
+
+    // Display water alarm value
+    const waterAlarmValueElement = document.getElementById("water_alarm_value");
+    waterAlarmValueElement.textContent = prevTimeOfWater > 0 ? `Water Break (Set for ${prevTimeOfWater} min.)` : 'Water Break';
+
+    // Display nap alarm value
+    const napAlarmValueElement = document.getElementById("nap_alarm_value");
+    napAlarmValueElement.textContent = prevTimeOfNap > 0 ? `Nap Break (Set for ${prevTimeOfNap} min.)` : 'Nap Break';
+  } catch (error) {
+    console.error("Error retrieving alarm values: ", error);
+  }
+}
+
+// Call the display function when the popup loads
+document.addEventListener("DOMContentLoaded", displayAlarmValues);
+
 
 document.getElementById("submit_btn").addEventListener("click", submit);
